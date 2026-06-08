@@ -1,0 +1,419 @@
+
+import sys, pygame, random
+
+pygame.init()
+pygame.mixer.init()
+
+
+# --- Settings ---
+size = width, height = 1280, 720
+black = 0, 0, 0
+BLUE = (0, 0, 255)
+
+# --- State ---
+textboxtrancparency = 200
+buttonstrancparency = 200
+state = "start"
+line_index = 0
+text_line1 = ""
+text_line2 = ""
+keyboardinput = ""
+hasBG = False 
+char_index = 0
+full_text = ""
+typespeed = 1
+savepoint = 1
+savestate = "Save"
+loadstate = "Load"
+save_timer = 0
+load_timer = 0
+last_char_time = 0
+character1 = "Assets/Empty.png"
+character2 = "Assets/Empty.png"
+currentBG = "Assets\Backgrounds\warehouse_outside.png" 
+global current_playlist
+current_playlist = "ambient_room"
+current_track = ""
+
+backgrounds = {
+
+    "school1": "Assets\Backgrounds\warehouse_outside.png",
+    "school2": "Assets\Backgrounds\single bedroom.png",
+    "house1": "",
+    "house2": "",
+}
+
+characters = {
+
+    "1": "Assets/referencepose\png256x288/body11.png",
+    "2": "Assets/referencepose\png256x288/body12.png",
+    "3": "Assets/referencepose\png256x288/body13.png",
+    "4": ""
+
+
+}
+
+# --- Font ---
+
+font = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", 30)
+settingsfont = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", 30)
+
+# --- Screen ---
+screen = pygame.display.set_mode(size)
+
+# --- Functions ---
+
+def play_background_music(playlist):
+    pygame.mixer.music.set_volume(0.3)
+    global current_track 
+    if playlist == "ambient_room":
+        playlist = [
+            "Assets/Free use sounds/Room+Tones+-+Signaturesounds.org/Room Tones - Signaturesounds.org/Room-Tone 1.wav",
+            "Assets/Free use sounds/Room+Tones+-+Signaturesounds.org/Room Tones - Signaturesounds.org/Room-Tone 2.wav",
+            "Assets/Free use sounds/Room+Tones+-+Signaturesounds.org/Room Tones - Signaturesounds.org/Room-Tone 6.wav",
+            "Assets/Free use sounds/Room+Tones+-+Signaturesounds.org/Room Tones - Signaturesounds.org/Room-Tone 7.wav",
+        ]
+    track_to_play = random.choice(playlist)
+    if current_track == track_to_play:
+        pass
+    else:
+        pygame.mixer.music.load(track_to_play)
+        current_track = track_to_play
+        pygame.mixer.music.play()
+
+
+
+
+def Buttonify(Picture, coords, clicked):
+    if clicked == False:
+        image = pygame.image.load(Picture)
+        imagerect = image.get_rect()
+        imagerect.topright = coords
+        screen.blit(image, imagerect)
+        return (image, imagerect)
+    
+
+def wrap_text(dialogue):
+    words = dialogue.split()
+    line1 = ""
+    line2 = ""
+    for word in words:
+        test = (line1 + " " + word).strip()
+        if font.size(test)[0] < 980:
+            line1 = test
+        else:
+            line2 = (line2 + " " + word).strip()
+    return line1, line2
+
+def draw_rect_alpha(color, rect):
+    shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+    pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+    screen.blit(shape_surf, rect)
+
+def draw_image(imagefilename):
+    image = pygame.image.load(imagefilename)
+    imagerect = image.get_rect()
+    screen.blit(image, imagerect)
+
+def draw_background(imagefilename):
+    global currentBG
+    currentBG = imagefilename
+    image = pygame.image.load(imagefilename)
+    imagerect = image.get_rect()
+    screen.blit(image, imagerect)
+
+def renderdialogue(filename):
+    file = open(filename, "r")
+    lines = file.readlines()
+    file.close()
+    return lines
+
+def readlines(lines, line):
+    words = lines[line].strip().split()
+    global hasBG, NextBG, character1, character2
+    to_remove = set()
+    
+    for i, word in enumerate(words):
+        if word == "BG":
+            hasBG = True
+            NextBG = backgrounds[words[i + 1]]
+            to_remove.add(i)
+            to_remove.add(i + 1)
+        elif word == "CH1":
+            character1 = characters[words[i + 1]]
+            to_remove.add(i)
+            to_remove.add(i + 1)
+        elif word == "CH2":
+            character2 = characters[words[i + 1]]
+            to_remove.add(i)
+            to_remove.add(i + 1)
+    
+    words = [w for i, w in enumerate(words) if i not in to_remove]
+    return " ".join(words)
+
+
+# --- Draw functions ---
+def draw_start():
+    draw_image("Assets\Backgrounds\sky.png")
+    return Buttonify("Assets/Playbutton.png", (500, 400), False)
+    
+
+def draw_game(text_line1, text_line2):
+    draw_image(currentBG)
+    draw_characters(character1, character2)
+    # text box
+    draw_rect_alpha((96, 96, 96, textboxtrancparency), (100, 550, 1000, 150))
+    fastforward = Buttonify("Assets/undo-button1.png", (900, 550), False)
+    Settings = Buttonify("Assets/cog.png",(960,550), False)
+    text_layer1 = font.render(text_line1, False, (0, 0, 0))
+    text_layer2 = font.render(text_line2, False, (0, 0, 0))
+    text_layer3 = font.render(keyboardinput, False, (10, 10, 10))
+    screen.blit(text_layer1, (100, 610))
+    screen.blit(text_layer2, (100, 644))
+    screen.blit(text_layer3, (10,10))
+    return fastforward, Settings
+
+def draw_settings():
+    draw_image(currentBG)
+    draw_rect_alpha((96, 96, 96, buttonstrancparency), (540, 100, 200, 350))
+    draw_rect_alpha((255,0,0, buttonstrancparency), (720, 100, 20, 10))
+    # save button
+    # load button
+    # volume
+    # type speed
+    title_text = settingsfont.render("Settings", False,(150,150,150))
+    typespeed_slider.draw(screen, settingsfont)
+    volume_slider.draw(screen, settingsfont)
+    savebutton = draw_rect_alpha((96, 96, 96, buttonstrancparency), (560, 270, 160, 40))
+    loadbutton = draw_rect_alpha((96,96,0,buttonstrancparency),(560, 315, 160, 40))
+    quitbutton = draw_rect_alpha((96,0,96,buttonstrancparency),(560, 360, 160, 40))
+    savebuttontext = settingsfont.render(savestate, False,(150,150,150))
+    loadbuttontext = settingsfont.render(loadstate, False,(150,150,150))
+    quitbuttontext = settingsfont.render("Quit", False,(150,150,150))
+    screen.blit(title_text,(550,100))
+    screen.blit(savebuttontext,(560,275))
+    screen.blit(loadbuttontext,(560,320))
+    screen.blit(quitbuttontext,(560,370))
+
+def draw_load():
+    pass
+def draw_save():
+    pass
+
+
+def draw_characters(char1, char2):
+    x,y = 80,300
+    # first need to check if person1/2 holds a value which isnt "Empty.png"
+    if char1 == "Empty.png" and char2 == "Empty.png":
+        pass
+    elif char1 != "Empty.png" and char2 == "Empty.png":
+        char1 = pygame.image.load(char1)
+        screen.blit(char1,(x+768,y))
+    elif char1 != "Empty.png" and char2 != "Empty.png":
+        char1 = pygame.image.load(char1)
+        screen.blit(char1,(x,y))
+        char2 = pygame.image.load(char2)
+        screen.blit(char2,(x+764,y)) # originaly 864
+ 
+
+def fade(NextBG, currentBG):
+    old = pygame.image.load(currentBG).convert_alpha()
+    new = pygame.image.load(NextBG).convert_alpha()
+    for alpha in range(0, 256):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                return
+        screen.fill((0, 0, 0))
+        temp_old = old.copy()
+        temp_old.fill((255, 255, 255, 255 - alpha), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(temp_old, (0, 0))
+        temp_new = new.copy()
+        temp_new.fill((255, 255, 255, alpha), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(temp_new, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(4)
+
+class Slider:
+    def __init__(self, x, y, w, name):
+        self.track = pygame.Rect(x, y, w, 6)
+        self.handle = pygame.Rect(x, y - 6, 10, 18)
+        self.name = name
+        self.value = 0
+        self.dragging = False
+
+    def draw(self, screen, font):
+        pygame.draw.rect(screen, (60, 60, 60), self.track)
+        pygame.draw.rect(screen, (200, 200, 200), self.handle)
+        label = font.render(self.name, False, (150, 150, 150))
+        screen.blit(label, (self.track.x, self.track.y - 30))
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.handle.collidepoint(event.pos):
+                self.dragging = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.dragging = False
+        elif event.type == pygame.MOUSEMOTION:
+            if self.dragging:
+                x = event.pos[0]
+                x = max(self.track.left, min(x, self.track.right))
+                self.handle.centerx = x
+                self.value = (x - self.track.left) / self.track.width
+
+    def get(self, min_val, max_val):
+        return int((self.value) * (max_val - min_val)) + min_val
+
+def save(line_index1):
+    save_file = open("Assets/save_file.txt","w")
+    line_index1 = str(line_index1)
+    line = line_index1.split()[0]
+    global savestate
+    save_file.write(line)
+    savestate = "saved"
+    save_file.close()
+
+def load():
+    save_file = open("Assets/save_file.txt","r")
+    line = save_file.readline()
+    line_index = int(line)
+    global loadstate
+    loadstate = "loaded"
+    return line_index
+
+
+
+# --- Setup ---
+
+
+lines = renderdialogue("Assets/dialogue.txt")
+Startbutton = None
+fastforward = None
+Settings = None
+textbox_rect = pygame.Rect(100, 600, 1000, 100)
+closesettings_rect = pygame.Rect(720, 100, 20, 10)
+savebutton_rect = pygame.Rect(560, 270, 160, 40)
+loadbutton_rect = pygame.Rect(560, 315, 160, 40)
+typespeed_slider = Slider(560, 200, 160, "Text Speed")
+volume_slider = Slider(560, 250, 160, "Volume")
+volume_slider.value = 0.3                     
+volume_slider.handle.centerx = int(volume_slider.track.left + 0.3 * volume_slider.track.width)
+quitbutton_rect = pygame.Rect(560, 360, 160, 40)
+savebutton = None
+NEXT_TRACK = pygame.USEREVENT + 1
+pygame.mixer.music.set_endevent(NEXT_TRACK)
+play_background_music(current_playlist)
+
+# --- Game Loop ---
+while True:
+    keyboardinput = ""
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+        elif event.type == NEXT_TRACK:
+            play_background_music(current_playlist)
+        if state == "start":
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse = pygame.mouse.get_pos()
+                if Startbutton and Startbutton[1].collidepoint(mouse):
+                    state = "game"
+
+        elif state == "game":
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse = pygame.mouse.get_pos()
+                if fastforward and fastforward[1].collidepoint(mouse) and char_index >= len(full_text):
+                        if line_index < len(lines) - 1:
+                            full_text = readlines(lines, line_index)
+                            char_index = len(full_text)
+                            line_index += 1
+                            pygame.time.delay(3)
+                            if hasBG == True:
+                                state = "crossfading"
+                elif textbox_rect.collidepoint(mouse):
+                    if char_index < len(full_text):
+                    # First click: skip to end of current line
+                        char_index = len(full_text)
+                        text_line1, text_line2 = wrap_text(full_text)
+                    elif line_index < len(lines) - 1:
+                    # Second click: advance to next line
+                        full_text = readlines(lines, line_index)
+                        char_index = 0
+                        line_index += 1
+                        pygame.time.delay(3)
+                    if hasBG == True:
+                        state = "crossfading"
+                elif Settings and Settings[1].collidepoint(mouse) and char_index >= len(full_text):
+                    state = "settings"
+
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and char_index >= len(full_text):
+                if line_index < len(lines) - 1:
+                    full_text = readlines(lines, line_index)
+                    char_index = 0
+                    line_index += 1
+                    savepoint = line_index
+                    pygame.time.delay(3)
+            if hasBG == True:
+                state = "crossfading"
+               # full_text = readlines(lines, line_index)
+                char_index = 0
+                fade(NextBG,currentBG)
+                currentBG = NextBG
+                hasBG = False
+                state = "game"
+        elif state == "settings":
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse = pygame.mouse.get_pos()
+                if closesettings_rect.collidepoint(mouse):
+                    state = "game"
+                elif Settings and Settings[1].collidepoint(mouse):
+                    state = "game"
+                elif quitbutton_rect.collidepoint(mouse):
+                    sys.exit()
+                elif savebutton_rect.collidepoint(mouse):
+                    save(savepoint)
+                    save_timer = pygame.time.get_ticks()
+                    savestate = "save"
+                elif loadbutton_rect.collidepoint(mouse):
+                    line_index = load()
+                    full_text = readlines(lines, line_index)
+                    char_index = 0
+                    line_index += 1
+                    load_timer = pygame.time.get_ticks()
+                    loadstate = "load"
+            if savestate == "saved" and pygame.time.get_ticks() - save_timer > 500:
+                savestate = "save"
+            elif loadstate == "loaded" and pygame.time.get_ticks() - load_timer > 500:
+                loadstate = "load"
+
+
+
+
+
+            typespeed_slider.handle_event(event)
+            volume_slider.handle_event(event)
+            volume = volume_slider.get(1,100)
+            pygame.mixer.music.set_volume((volume / 100))
+            typespeed = typespeed_slider.get(100, 1)
+
+
+
+# --- Drawing ---
+
+    if state == "start":
+        Startbutton = draw_start()
+    elif state == "game":
+        fastforward, Settings = draw_game(text_line1, text_line2)
+    elif state == "settings":
+        draw_settings()
+    elif state == "crossfading": 
+        draw_game(text_line1, text_line2)
+    
+    now = pygame.time.get_ticks()
+    if char_index < len(full_text) and now - last_char_time >= typespeed:
+        char_index += 1
+        text_line1, text_line2 = wrap_text(full_text[:char_index])
+        last_char_time = now
+
+    pygame.display.update()
+

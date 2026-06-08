@@ -1,0 +1,33 @@
+Need to start making assets such as backgrounds and charachters 
+Need to polish save and load feature most vns have multiple save slots also currently there is 
+no load confimation which would be a nice feature to have.
+The settings menu is janky (just a box, a image would be nice)
+there is no load/startup menu
+no option to change from windowed to full screen 
+no integration of dynamic window sizing
+no flag in dialouge for sound.
+slider looks ugly, buttons too
+fast foward button is useless
+no log button
+
+Main improvements
+2 submenus within settings one for save one for loading multiple slots + confimation
+startup menu
+
+stuff, waht else could i add to the engine01:02Claude responded: some ideas:some ideas:
+
+name entry at the start so the player can input their name and it shows up in dialogue
+dialogue choices that branch the story
+character name display above the text box
+sound effects triggered by dialogue lines
+screen shake for dramatic moments
+text skip button to fast forward through already read dialogue
+fullscreen toggle
+a "back" button to reread previous lines
+also a log
+
+
+
+Now I want to make the functions i relied on ai for
+
+Most notably the fade function and the slider class
