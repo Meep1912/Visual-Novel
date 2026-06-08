@@ -16,6 +16,7 @@ state = "start"
 line_index = 0
 text_line1 = ""
 text_line2 = ""
+charactername = ""
 keyboardinput = ""
 hasBG = False 
 char_index = 0
@@ -48,7 +49,7 @@ backgrounds = {
     "house2": "",
 }
 characters = {
-    "1": "Assets/referencepose\png256x288/body11.png",
+    "name": "Assets/referencepose\png256x288/body11.png",
     "2": "Assets/referencepose\png256x288/body12.png",
     "3": "Assets/referencepose\png256x288/body13.png",
     "bob": "Assets\Bob.png"
@@ -136,6 +137,7 @@ def readlines(lines, line):
     global hasBG, NextBG, character1, character2, speed, hasCH1, hasCH2
     to_remove = set()
     newwords = ""
+    charactername = ""
     for i in words:
         newwords = newwords + i
     log.append(" " + newwords + "\n")
@@ -154,18 +156,24 @@ def readlines(lines, line):
             character1 = characters[words[i + 1]]
             to_remove.add(i)
             to_remove.add(i + 1)
+            if character1 == "bob":
+                charactername = "bob"
+
         elif word == "CH2":
             hasCH2 = True
             character2 = characters[words[i + 1]]
             to_remove.add(i)
             to_remove.add(i + 1)
+            if character2 == "bob":
+                charactername = "bob"
         elif word != "CH1":
             hasCH1 = False
         elif word != "CH2":
             hasCH2 = False
+
     
     words = [w for i, w in enumerate(words) if i not in to_remove]
-    return " ".join(words)
+    return " ".join(words), charactername
 
 ## Load a save
 
@@ -301,19 +309,26 @@ def draw_start_options():
     draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(540), sy(100), sx(200), sy(350)))
     draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(720), sy(100), sx(20), sy(10)))
 
-def draw_game(text_line1, text_line2):
+def draw_game(text_line1, text_line2,charactername):
     draw_image(currentBG)
     draw_characters()
-    # text box
-    draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(550), sx(1000), sy(150)))
+    textbox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(550), sx(1000), sy(150)))
     logsbutton = Buttonify("Assets\open-book.png", (sx(900), sy(550)), False)
     Settings = Buttonify("Assets/cog.png", (sx(980), sy(550)), False)
+
     text_layer1 = font.render(text_line1, False, (0, 0, 0))
     text_layer2 = font.render(text_line2, False, (0, 0, 0))
     text_layer3 = font.render(keyboardinput, False, (10, 10, 10))
+
+    characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(530), sx(100), sy(130)))
+    charactername_text = font.render(charactername, False, (0,0,0))
+    screen.blit(text_layer1, (sx(100), sy(610)))
+
     screen.blit(text_layer1, (sx(100), sy(610)))
     screen.blit(text_layer2, (sx(100), sy(644)))
     screen.blit(text_layer3, (sx(10), sy(10)))
+
+
     return Settings, logsbutton
 
 
@@ -433,8 +448,12 @@ def draw_characters():
 
 
 def draw_logs():
-    largebox = draw_rect_alpha((96, 96, 96, 150), (sx(50), sy(50), sx(1175), sy(600)))
+
+    largebox = draw_rect_alpha((96, 96, 96, 40), (sx(50), sy(50), sx(1175), sy(600)))
     exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205), sy(50), sx(20), sy(10)))
+
+    logstitle = settingsfont.render("L O G S", False, (0,0,0))
+    screen.blit(logstitle, (sx(75), sy(75)))
 
 def fade(NextBG, currentBG, speed):
     # firstly how does one "fade" well for inputs I need current BG next BG and also fade time
@@ -614,7 +633,7 @@ while True:
                         text_line1, text_line2 = wrap_text(full_text)
                     elif line_index < len(lines) - 1:
                     # Second click: advance to next line
-                        full_text = readlines(lines, line_index)
+                        full_text, charactername = readlines(lines, line_index)
                         char_index = 0
                         line_index += 1
                         pygame.time.delay(3)
@@ -623,7 +642,7 @@ while True:
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and char_index >= len(full_text):
                 if line_index < len(lines) - 1:
-                    full_text = readlines(lines, line_index)
+                    full_text, charactername = readlines(lines, line_index)
                     char_index = 0
                     line_index += 1
                     savepoint = line_index
@@ -719,7 +738,7 @@ while True:
                     result = load(saveslot)
                     if result is not None:
                         line_index = result
-                        full_text = readlines(lines, line_index)
+                        full_text, charactername  = readlines(lines, line_index)
                         char_index = len(full_text)
                         state = "game"
                 elif notsurerect.collidepoint(mouse):
@@ -747,7 +766,7 @@ while True:
     if state == "start":
         Startbutton = draw_start()
     elif state == "game":
-        Settings, logsbutton = draw_game(text_line1, text_line2)
+        Settings, logsbutton = draw_game(text_line1, text_line2,charactername)
     elif state == "settings":
         draw_settings()
     elif state == "save/load menu":
@@ -759,7 +778,7 @@ while True:
     elif state == "load_confirmation":
         draw_load_confirmation(saveslot)
     elif state == "crossfading": 
-        draw_game(text_line1, text_line2)
+        draw_game(text_line1, text_line2,charactername)
     elif state == "start_options":
         draw_start_options()
     elif state == "logs":
