@@ -306,15 +306,15 @@ def draw_game(text_line1, text_line2):
     draw_characters()
     # text box
     draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(550), sx(1000), sy(150)))
-    logsbutton = Buttonify("Assets/undo-button1.png", (sx(900), sy(550)), False)
-    Settings = Buttonify("Assets/cog.png", (sx(960), sy(550)), False)
+    logsbutton = Buttonify("Assets\open-book.png", (sx(900), sy(550)), False)
+    Settings = Buttonify("Assets/cog.png", (sx(980), sy(550)), False)
     text_layer1 = font.render(text_line1, False, (0, 0, 0))
     text_layer2 = font.render(text_line2, False, (0, 0, 0))
     text_layer3 = font.render(keyboardinput, False, (10, 10, 10))
     screen.blit(text_layer1, (sx(100), sy(610)))
     screen.blit(text_layer2, (sx(100), sy(644)))
     screen.blit(text_layer3, (sx(10), sy(10)))
-    return Settings
+    return Settings, logsbutton
 
 
 def draw_settings():
@@ -431,6 +431,11 @@ def draw_characters():
         character2_img = pygame.image.load(character2)
         screen.blit(character2_img, (x + sx(764), y)) # originaly 864
 
+
+def draw_logs():
+    largebox = draw_rect_alpha((96, 96, 96, 150), (sx(50), sy(50), sx(1175), sy(600)))
+    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205), sy(50), sx(20), sy(10)))
+
 def fade(NextBG, currentBG, speed):
     # firstly how does one "fade" well for inputs I need current BG next BG and also fade time
     # to fade I will make a black background behind and draw it for the entire time 
@@ -543,7 +548,11 @@ refreshsaves()
 # --- Game Loop ---
 while True:
     # Recompute collision rects each frame to handle window resize
-    logsbutton_rect = pygame.Rect(sx(900), sy(550),sx(50),sx(50))
+    #logsbutton_rect = pygame.Rect(sx(900), sy(550),sx(50),sx(50))
+    # use buttonify instead of logs button rect
+    # increase logs button rect to whole screen 
+    #logsbutton_rect = pygame.Rect(sx(0), sy(0),sx(1000),sx(1000))
+
     textbox_rect = pygame.Rect(sx(100), sy(600), sx(1000), sy(100))
     closesettings_rect = pygame.Rect(sx(720), sy(100), sx(20), sy(10))
     saveslashloadbutton_rect = pygame.Rect(sx(560), sy(270), sx(160), sy(40))
@@ -553,6 +562,7 @@ while True:
     startquitbutton_rect = pygame.Rect(sx(500), sy(350), sx(200), sy(40))
     closestartsettings_rect = pygame.Rect(sx(720), sy(100), sx(20), sy(10))
     closesaveslashloadmenu_rect = pygame.Rect(sx(1205), sy(50), sx(20), sy(10))
+    closelogsbutton_rect = pygame.Rect(sx(1205), sy(50), sx(20), sy(10))
     savebox1rect = pygame.Rect(sx(100), sy(100), sx(325), sy(200))
     savebox2rect = pygame.Rect(sx(475), sy(100), sx(325), sy(200))
     savebox3rect = pygame.Rect(sx(850), sy(100), sx(325), sy(200))
@@ -584,12 +594,20 @@ while True:
                     state = "start_options"
                 elif startquitbutton_rect.collidepoint(mouse):
                     sys.exit()
+
+# game state 
         elif state == "game":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
-                if logsbutton_rect.collidepoint(mouse):
+
+                if logsbutton and logsbutton[1].collidepoint(mouse) and char_index >= len(full_text):
                     state = "logs"
-                elif textbox_rect.collidepoint(mouse) and not logsbutton_rect[1].collidepoint(mouse):
+                    print("logs was pressed indeed")
+
+                elif Settings and Settings[1].collidepoint(mouse) and char_index >= len(full_text):
+                    state = "settings"
+
+                elif textbox_rect.collidepoint(mouse) and not logsbutton and logsbutton[1].collidepoint(mouse):
                     if char_index < len(full_text):
                     # First click: skip to end of current line
                         char_index = len(full_text)
@@ -602,8 +620,7 @@ while True:
                         pygame.time.delay(3)
                     if hasBG == True:
                         state = "crossfading"
-                elif Settings and Settings[1].collidepoint(mouse) and char_index >= len(full_text):
-                    state = "settings"
+
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and char_index >= len(full_text):
                 if line_index < len(lines) - 1:
                     full_text = readlines(lines, line_index)
@@ -611,14 +628,17 @@ while True:
                     line_index += 1
                     savepoint = line_index
                     pygame.time.delay(3)
+
             if hasBG == True:
                 state = "crossfading"
-                 # full_text = readlines(lines, line_index)
                 char_index = 0
                 fade(NextBG,currentBG, speed)
                 currentBG = NextBG
                 hasBG = False
                 state = "game"
+
+# settings state 
+
         elif state == "settings":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
@@ -635,6 +655,9 @@ while True:
             volume = volume_slider.get(1,100)
             pygame.mixer.music.set_volume((volume / 100))
             typespeed = typespeed_slider.get(100, 1)
+
+# sub state of settings (parent settings)
+
         elif state == "save/load menu":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
@@ -658,6 +681,9 @@ while True:
                 elif savebox6rect.collidepoint(mouse):
                     saveslot = "save6"
                     state = "save_or_load"
+
+# sub state of save/load (parent settings)
+
         elif state == "save_or_load":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
@@ -679,6 +705,8 @@ while True:
                     save(saveslot, line_index)
                 elif notsurerect.collidepoint(mouse):
                     state = "save_or_load"
+
+    # sub state of save_or_load (parent settings)
 
         elif state == "load_confirmation":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -706,11 +734,20 @@ while True:
                     if closestartsettings_rect.collidepoint(mouse):
                         state = "start"
         
+# logs state
+
+        elif state == "logs":
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse = pygame.mouse.get_pos()
+                    if closelogsbutton_rect.collidepoint(mouse):
+                        state = "game"
+
+        
 # --- Drawing ---
     if state == "start":
         Startbutton = draw_start()
     elif state == "game":
-        Settings = draw_game(text_line1, text_line2)
+        Settings, logsbutton = draw_game(text_line1, text_line2)
     elif state == "settings":
         draw_settings()
     elif state == "save/load menu":
@@ -725,6 +762,8 @@ while True:
         draw_game(text_line1, text_line2)
     elif state == "start_options":
         draw_start_options()
+    elif state == "logs":
+        draw_logs()
     
     now = pygame.time.get_ticks()
     if char_index < len(full_text) and now - last_char_time >= typespeed:

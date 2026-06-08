@@ -31,3 +31,8 @@ also a log
 Now I want to make the functions i relied on ai for
 
 Most notably the fade function and the slider class
+
+where logs rect is :
+logsbutton_rect = pygame.Rect(sx(900), sy(550),sx(50),sx(50))
+where the log button is:
+logsbutton = Buttonify("Assets\open-book.png", (sx(900), sy(550)), False)
