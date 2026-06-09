@@ -122,6 +122,11 @@ def draw_image(imagefilename):
     image = pygame.image.load(imagefilename)
     image = pygame.transform.scale(image, screen.get_size())
     screen.blit(image, (0, 0))
+
+def draw_background_start(imagefilename):
+    image = pygame.image.load(imagefilename)
+    image = pygame.transform.scale(image, screen.get_size())
+    screen.blit(image, (0, 0))
 def draw_background(imagefilename):
     global currentBG
     currentBG = imagefilename
@@ -304,8 +309,7 @@ def draw_load_confirmation(saveslot):
 
 
 def draw_start_options():
-    draw_background(currentBG)
-    draw_characters()
+    draw_background_start("Assets\Backgrounds\sky.png")
     draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(540), sy(100), sx(200), sy(350)))
     draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(720), sy(100), sx(20), sy(10)))
 
@@ -348,10 +352,10 @@ def draw_settings():
     typespeed_slider.draw(screen, settingsfont)
     volume_slider.draw(screen, settingsfont)
     draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(560), sy(270), sx(160), sy(40))) # load/save options button
-    draw_rect_alpha((96, 96, 0, buttonstrancparency), (sx(560), sy(315), sx(160), sy(40))) # empty button
+    draw_rect_alpha((96, 96, 0, buttonstrancparency), (sx(560), sy(315), sx(160), sy(40))) # main menu button
     draw_rect_alpha((96, 0, 96, buttonstrancparency), (sx(560), sy(360), sx(160), sy(40))) # quit button
     saveslashloadbuttontext = settingsfont.render("save/load", False, (150, 150, 150))
-    buttontext = settingsfont.render("button", False, (150, 150, 150))
+    buttontext = settingsfont.render("Main", False, (150, 150, 150))
     quitbuttontext = settingsfont.render("Quit", False, (150, 150, 150))
     screen.blit(title_text, (sx(550), sy(100)))
     screen.blit(saveslashloadbuttontext, (sx(560), sy(275)))
@@ -577,6 +581,7 @@ while True:
     saveslashloadbutton_rect = pygame.Rect(sx(560), sy(270), sx(160), sy(40))
     button_rect = pygame.Rect(sx(560), sy(315), sx(160), sy(40))
     quitbutton_rect = pygame.Rect(sx(560), sy(360), sx(160), sy(40))
+    menubutton_rect = pygame.Rect(sx(560), sy(315), sx(160), sy(40))
     startoptionsbutton_rect = pygame.Rect((sx(500), sy(300), sx(200), sy(40)))
     startquitbutton_rect = pygame.Rect(sx(500), sy(350), sx(200), sy(40))
     closestartsettings_rect = pygame.Rect(sx(720), sy(100), sx(20), sy(10))
@@ -604,6 +609,9 @@ while True:
             reload_fonts()
         elif event.type == NEXT_TRACK:
             play_background_music(current_playlist)
+
+# start state
+
         if state == "start":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
@@ -613,6 +621,14 @@ while True:
                     state = "start_options"
                 elif startquitbutton_rect.collidepoint(mouse):
                     sys.exit()
+
+# sub state of start (parent: start)
+
+        elif state == "start_options":
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse = pygame.mouse.get_pos()
+                    if closestartsettings_rect.collidepoint(mouse):
+                        state = "start"
 
 # game state 
 
@@ -672,6 +688,8 @@ while True:
                     state = "game"
                 elif Settings and Settings[1].collidepoint(mouse):
                     state = "game"
+                elif menubutton_rect.collidepoint(mouse):
+                    state = "start"
                 elif quitbutton_rect.collidepoint(mouse):
                     sys.exit()
                 elif saveslashloadbutton_rect.collidepoint(mouse):
@@ -719,6 +737,9 @@ while True:
                     state = "save_confirmation"
                 elif loadbutton_rect.collidepoint(mouse):
                     state = "load_confirmation"
+
+    # sub state of save_or_load (parent settings)
+
         elif state == "save_confirmation":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
@@ -754,11 +775,6 @@ while True:
                 savestate = "save"
         elif loadstate == "loaded" and pygame.time.get_ticks() - load_timer > 500:
                 loadstate = "load"
-        elif state == "start_options":
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    mouse = pygame.mouse.get_pos()
-                    if closestartsettings_rect.collidepoint(mouse):
-                        state = "start"
         
 # logs state
 
