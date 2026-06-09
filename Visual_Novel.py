@@ -9,7 +9,7 @@ pygame.display.set_caption("Bright Light")  # window name
 icon = pygame.image.load("Assets/Icon.png")
 pygame.display.set_icon(icon)
 # --- State ---
-global current_playlist, character1, character2, log
+global current_playlist, character1, character2, log, charactername
 textboxtrancparency = 200
 buttonstrancparency = 200
 state = "start"
@@ -112,6 +112,7 @@ def wrap_text(dialogue):
             line1 = test
         else:
             line2 = (line2 + " " + word).strip()
+
     return line1, line2
 def draw_rect_alpha(color, rect):
     shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
@@ -141,7 +142,6 @@ def readlines(lines, line):
     for i in words:
         newwords = newwords + i
     log.append(" " + newwords + "\n")
-    print(log)
     
     for i, word in enumerate(words):
         if word == "BG":
@@ -156,7 +156,7 @@ def readlines(lines, line):
             character1 = characters[words[i + 1]]
             to_remove.add(i)
             to_remove.add(i + 1)
-            if character1 == "bob":
+            if words[i + 1] == "bob":
                 charactername = "bob"
 
         elif word == "CH2":
@@ -164,8 +164,9 @@ def readlines(lines, line):
             character2 = characters[words[i + 1]]
             to_remove.add(i)
             to_remove.add(i + 1)
-            if character2 == "bob":
+            if words[i + 1] == "bob":
                 charactername = "bob"
+
         elif word != "CH1":
             hasCH1 = False
         elif word != "CH2":
@@ -320,9 +321,9 @@ def draw_game(text_line1, text_line2,charactername):
     text_layer2 = font.render(text_line2, False, (0, 0, 0))
     text_layer3 = font.render(keyboardinput, False, (10, 10, 10))
 
-    characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(530), sx(100), sy(130)))
+    characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
     charactername_text = font.render(charactername, False, (0,0,0))
-    screen.blit(text_layer1, (sx(100), sy(610)))
+    screen.blit(charactername_text, (sx(100), sy(500)))
 
     screen.blit(text_layer1, (sx(100), sy(610)))
     screen.blit(text_layer2, (sx(100), sy(644)))
@@ -621,7 +622,6 @@ while True:
 
                 if logsbutton and logsbutton[1].collidepoint(mouse) and char_index >= len(full_text):
                     state = "logs"
-                    print("logs was pressed indeed")
 
                 elif Settings and Settings[1].collidepoint(mouse) and char_index >= len(full_text):
                     state = "settings"
@@ -643,6 +643,11 @@ while True:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and char_index >= len(full_text):
                 if line_index < len(lines) - 1:
                     full_text, charactername = readlines(lines, line_index)
+                        #
+                    characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
+                    charactername_text = font.render(charactername, False, (0,0,0))
+                    screen.blit(charactername_text, (sx(100), sy(500)))
+                        #
                     char_index = 0
                     line_index += 1
                     savepoint = line_index
@@ -777,8 +782,7 @@ while True:
         draw_save_confirmation(saveslot)
     elif state == "load_confirmation":
         draw_load_confirmation(saveslot)
-    elif state == "crossfading": 
-        draw_game(text_line1, text_line2,charactername)
+
     elif state == "start_options":
         draw_start_options()
     elif state == "logs":
