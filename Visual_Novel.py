@@ -9,14 +9,13 @@ pygame.display.set_caption("Bright Light")  # window name
 icon = pygame.image.load("Assets/Icon.png")
 pygame.display.set_icon(icon)
 # --- State ---
-global current_playlist, character1, character2, log, charactername
+global current_playlist, character1, character2, log
 textboxtrancparency = 200
 buttonstrancparency = 200
 state = "start"
 line_index = 0
 text_line1 = ""
 text_line2 = ""
-charactername = ""
 keyboardinput = ""
 hasBG = False 
 char_index = 0
@@ -33,6 +32,7 @@ character2 = "Assets/Empty.png"
 currentBG = "Assets\Backgrounds\warehouse_outside.png" 
 current_playlist = "ambient_room"
 current_track = ""
+charactername = ""
 save1time = "0"
 save2time = "0"
 save3time = "0"
@@ -135,10 +135,9 @@ def renderdialogue(filename):
     return lines
 def readlines(lines, line):
     words = lines[line].strip().split()
-    global hasBG, NextBG, character1, character2, speed, hasCH1, hasCH2
+    global hasBG, NextBG, character1, character2, speed, hasCH1, hasCH2, charactername
     to_remove = set()
     newwords = ""
-    charactername = ""
     for i in words:
         newwords = newwords + i
     log.append(" " + newwords + "\n")
@@ -174,7 +173,7 @@ def readlines(lines, line):
 
     
     words = [w for i, w in enumerate(words) if i not in to_remove]
-    return " ".join(words), charactername
+    return " ".join(words)
 
 ## Load a save
 
@@ -616,6 +615,7 @@ while True:
                     sys.exit()
 
 # game state 
+
         elif state == "game":
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse = pygame.mouse.get_pos()
@@ -626,14 +626,14 @@ while True:
                 elif Settings and Settings[1].collidepoint(mouse) and char_index >= len(full_text):
                     state = "settings"
 
-                elif textbox_rect.collidepoint(mouse) and not logsbutton and logsbutton[1].collidepoint(mouse):
+                elif textbox_rect.collidepoint(mouse): # and not logsbutton and logsbutton[1].collidepoint(mouse)
                     if char_index < len(full_text):
                     # First click: skip to end of current line
                         char_index = len(full_text)
                         text_line1, text_line2 = wrap_text(full_text)
                     elif line_index < len(lines) - 1:
                     # Second click: advance to next line
-                        full_text, charactername = readlines(lines, line_index)
+                        full_text = readlines(lines, line_index)
                         char_index = 0
                         line_index += 1
                         pygame.time.delay(3)
@@ -642,7 +642,7 @@ while True:
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and char_index >= len(full_text):
                 if line_index < len(lines) - 1:
-                    full_text, charactername = readlines(lines, line_index)
+                    full_text = readlines(lines, line_index)
                         #
                     characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
                     charactername_text = font.render(charactername, False, (0,0,0))
@@ -654,11 +654,13 @@ while True:
                     pygame.time.delay(3)
 
             if hasBG == True:
-                state = "crossfading"
                 char_index = 0
                 fade(NextBG,currentBG, speed)
                 currentBG = NextBG
                 hasBG = False
+                full_text = readlines(lines, line_index)
+                char_index = 0
+                line_index += 1
                 state = "game"
 
 # settings state 
@@ -743,7 +745,7 @@ while True:
                     result = load(saveslot)
                     if result is not None:
                         line_index = result
-                        full_text, charactername  = readlines(lines, line_index)
+                        full_text = readlines(lines, line_index)
                         char_index = len(full_text)
                         state = "game"
                 elif notsurerect.collidepoint(mouse):

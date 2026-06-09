@@ -36,3 +36,6 @@ where logs rect is :
 logsbutton_rect = pygame.Rect(sx(900), sy(550),sx(50),sx(50))
 where the log button is:
 logsbutton = Buttonify("Assets\open-book.png", (sx(900), sy(550)), False)
+
+I need to add to the start options menu 
+I need to save the settings so a json file or smth
