@@ -2,7 +2,7 @@
 import pygame
 import random
 
-current_playlist = None
+current_track = None
 
 def play_background_music(playlist): # line 81
     global current_track 
@@ -21,4 +21,3 @@ def play_background_music(playlist): # line 81
         pygame.mixer.music.load(track_to_play)
         current_track = track_to_play
         pygame.mixer.music.play()
-# to play a song run play_background_music(current_playlist)
