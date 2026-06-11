@@ -1,6 +1,8 @@
 import sys, pygame, random
 pygame.init()
 pygame.mixer.init()
+from Sound import play_background_music
+
 # --- Settings ---
 size = width, height = 960, 540
 black = 0, 0, 0
@@ -567,7 +569,7 @@ volume_slider.handle.centerx = int(volume_slider.track.left + 0.3 * volume_slide
 savebutton = None
 NEXT_TRACK = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent(NEXT_TRACK)
-play_background_music(current_playlist)
+ # play_background_music(current_playlist)
 refreshsaves()
 # --- Game Loop ---
 while True:
