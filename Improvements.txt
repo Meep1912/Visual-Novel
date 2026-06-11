@@ -39,3 +39,26 @@ logsbutton = Buttonify("Assets\open-book.png", (sx(900), sy(550)), False)
 
 I need to add to the start options menu 
 I need to save the settings so a json file or smth
+
+
+
+for logs i want the format to be like this
+
+
+CH1 : BLA BLA BLA
+
+      BLA BLA BLA : CH2 
+
+CH1 : BLA BLA BLA
+
+      BLA BLA BLA : CH2 
+
+so I will have a list i write to like
+line = line1 + " " + line2
+if line.split().len() > 10:
+    listline = line.split()
+    for i in listline:
+        if i = (listline.len() / 2):
+            listline[1]
+
+list = [CH1, " : ", line]

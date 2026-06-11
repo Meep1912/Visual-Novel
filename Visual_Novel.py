@@ -32,7 +32,8 @@ character2 = "Assets/Empty.png"
 currentBG = "Assets\Backgrounds\warehouse_outside.png" 
 current_playlist = "ambient_room"
 current_track = ""
-charactername = ""
+CH1NAME = ""
+CH2NAME = ""
 save1time = "0"
 save2time = "0"
 save3time = "0"
@@ -140,7 +141,7 @@ def renderdialogue(filename):
     return lines
 def readlines(lines, line):
     words = lines[line].strip().split()
-    global hasBG, NextBG, character1, character2, speed, hasCH1, hasCH2, charactername
+    global hasBG, NextBG, character1, character2, speed, hasCH1, hasCH2, CH1NAME, CH2NAME
     to_remove = set()
     newwords = ""
     for i in words:
@@ -161,7 +162,7 @@ def readlines(lines, line):
             to_remove.add(i)
             to_remove.add(i + 1)
             if words[i + 1] == "bob":
-                charactername = "bob"
+                CH1NAME = "bob"
 
         elif word == "CH2":
             hasCH2 = True
@@ -169,7 +170,7 @@ def readlines(lines, line):
             to_remove.add(i)
             to_remove.add(i + 1)
             if words[i + 1] == "bob":
-                charactername = "bob"
+                CH2NAME = "bob"
 
         elif word != "CH1":
             hasCH1 = False
@@ -313,7 +314,7 @@ def draw_start_options():
     draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(540), sy(100), sx(200), sy(350)))
     draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(720), sy(100), sx(20), sy(10)))
 
-def draw_game(text_line1, text_line2,charactername):
+def draw_game(text_line1, text_line2,CH1NAME):
     draw_image(currentBG)
     draw_characters()
     textbox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(550), sx(1000), sy(150)))
@@ -324,9 +325,9 @@ def draw_game(text_line1, text_line2,charactername):
     text_layer2 = font.render(text_line2, False, (0, 0, 0))
     text_layer3 = font.render(keyboardinput, False, (10, 10, 10))
 
-    characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
-    charactername_text = font.render(charactername, False, (0,0,0))
-    screen.blit(charactername_text, (sx(100), sy(500)))
+    CH1NAMEbox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
+    CH1NAME_text = font.render(CH1NAME, False, (0,0,0))
+    screen.blit(CH1NAME_text, (sx(100), sy(500)))
 
     screen.blit(text_layer1, (sx(100), sy(610)))
     screen.blit(text_layer2, (sx(100), sy(644)))
@@ -660,9 +661,6 @@ while True:
                 if line_index < len(lines) - 1:
                     full_text = readlines(lines, line_index)
                         #
-                    characternamebox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
-                    charactername_text = font.render(charactername, False, (0,0,0))
-                    screen.blit(charactername_text, (sx(100), sy(500)))
                         #
                     char_index = 0
                     line_index += 1
@@ -789,7 +787,7 @@ while True:
     if state == "start":
         Startbutton = draw_start()
     elif state == "game":
-        Settings, logsbutton = draw_game(text_line1, text_line2,charactername)
+        Settings, logsbutton = draw_game(text_line1, text_line2,CH1NAME)
     elif state == "settings":
         draw_settings()
     elif state == "save/load menu":
