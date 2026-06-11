@@ -55,10 +55,28 @@ CH1 : BLA BLA BLA
 
 so I will have a list i write to like
 line = line1 + " " + line2
-if line.split().len() > 10:
-    listline = line.split()
-    for i in listline:
-        if i = (listline.len() / 2):
-            listline[1]
-
+then I will split line into words so
+lines = line.split()
+then I will find the width of the box the text is in , the font size of the text
 list = [CH1, " : ", line]
+
+Forget about the scaling with GUI for now all i need to do is combine line1 + line2
+words = len(lines.split())
+then i need to look at the length of each word in words and count the charachters
+words = hello , hi , because 
+count1 = 0
+count2 = 0
+line1 = ""
+line2 = ""
+for i in words:
+    if count1 + len(i) > limit:
+        if count2 + len(i) > limit:
+            end
+        else:
+            line2 += i + " "
+            count2 += len(i)
+    else:
+        line1 += i + " "
+        count1 += len(i)
+
+Yeah anyway the main thing im going to do is make the structure better
