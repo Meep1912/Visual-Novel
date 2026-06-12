@@ -50,6 +50,7 @@ save3time = "0"
 save4time = "0"
 save5time = "0"
 save6time = "0"
+scroll_offset = 0
 from datetime import datetime
 log = []
 
@@ -126,22 +127,56 @@ def wrap_textbox_text(dialogue):
 
     return line1, line2
 
-def format_logdata(data,log):
+def format_logdata(data):
+    isCH1speaking = data["isCH1speaking"]
     if data["isCH1speaking"] == True:
-        log = {
-        "name" : data["CH1NAME"],
-        "text" : data["dialogue"]
+        new_log = {
+            "name" : data["CH1NAME"],
+            "text" : data["dialogue"]
         }
     else:
-        
-    return log
+        new_log = {
+            "name" : data["CH2NAME"],
+            "text" : data["dialogue"]
+        }
+    return new_log, isCH1speaking
 
-def wrap_logbox_text(data,log):
-    sentences = ""
-    logboxwidth = 600
-    log = ["BOB", "hello there"]
+# takes log dict and returns a list where name is on index 0 with some dialogue then 
+# the rest of the lines are on following indexes so index 0 bob : hello, index 1 nice index 2 meet index 3 you.
+def wrap_logbox_text(log, isCH1speaking):
+    logbox_size = 600
+    words = log["text"].split()
+    lines = []
+    if log["name"] is not None:
+        current_line = log["name"] + " : "
+    else:
+        current_line = ""
+    for word in words:
+        test = current_line + word + " "
+        if font.size(test)[0] <= logbox_size:
+            current_line = test
+        else:
+            lines.append(current_line)
+            current_line = word + " "
+    lines.append(current_line)
+    return lines
     
-    
+# when readlines is ran it should return data after readlines is called format_logdata(data) 
+# should be run which should return a lovely list with name then dialogue separated so it fits
+# within the logbox space. 
+# That list should be added to a log list with a "/n" at the start
+# then the log list should be passed into draw_log(logs)
+# Then the logs should be all drawn onto the log box with some sort of scroll functionality
+# 
+# No restart
+# 
+# run readlines output data 
+# run format_logdata
+# add new_log to logs
+# draw_log(logs)
+# in draw_log run wrap_logbox_text
+# render the lines
+# apply the scroll effect / y offset
 
 
 
@@ -431,13 +466,25 @@ def draw_characters():
         screen.blit(character2_img, (x + sx(764), y)) # originaly 864
 
 
-def draw_logs():
-
+def draw_logs(log,scroll_offset):
+    count = 0
     largebox = draw_rect_alpha((96, 96, 96, 40), (sx(50), sy(50), sx(1175), sy(600)))
     exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205), sy(50), sx(20), sy(10)))
 
     logstitle = settingsfont.render("L O G S", False, (black))
     screen.blit(logstitle, (sx(75), sy(75)))
+    for entry in log:
+        wrapped_lines = wrap_logbox_text(entry,isCH1speaking)
+
+        for line in wrapped_lines:
+            count += 1
+            draw_textline(line, count,scroll_offset)
+
+def draw_textline(line,count,scroll_offset):
+    text = line
+    line_ = font.render(text, False, (black))
+    screen.blit(line_, (sx(100),sy(100) + count * sy(35) + scroll_offset))
+
 
     
 
@@ -542,6 +589,8 @@ class Slider:
 lines = readfile("Assets\dialogue.txt")
 
 data = readlines(lines,line)
+new_log,isCH1speaking = format_logdata(data)
+log.append(new_log)
 Startbutton = None
 fastforward = None
 Settings = None
@@ -592,7 +641,7 @@ while True:
                 screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
                 reload_fonts()
             elif event.type == NEXT_TRACK:
-                play_background_music(current_playlist)
+                play_background_music("ambient_room")
 
     # start state
 
@@ -637,6 +686,8 @@ while True:
                         elif line_index < len(lines) - 1:
                             line_index += 1
                             data = readlines(lines,line_index)
+                            new_log,isCH1speaking = format_logdata(data)
+                            log.append(new_log)
 
                             full_text = data["dialogue"]
                             char_index = 0
@@ -650,7 +701,6 @@ while True:
 
                             if data["CH1"] is not None:
                                 character1 = data["CH1"]
-                                print(f"just set character1 to {character1}")
 
                             if data["CH2"] is not None:
                                 character2 = data["CH2"]
@@ -665,6 +715,8 @@ while True:
                     if line_index < len(lines) - 1:
                         line_index += 1
                         data = readlines(lines,line_index)
+                        new_log,isCH1speaking = format_logdata(data)
+                        log.append(new_log)
 
                         full_text = data["dialogue"]
                         char_index = 0
@@ -786,15 +838,14 @@ while True:
                         mouse = pygame.mouse.get_pos()
                         if closelogsbutton_rect.collidepoint(mouse):
                             state = "game"
+                        if event.type == pygame.MOUSEWHEEL:
+                            scroll_offset += event.y * 30
 
             
     # --- Drawing ---
         if state == "start":
             Startbutton = draw_start()
         elif state == "game":
-            print(f"character1: {character1}")
-            print(f"character2: {character2}")
-            print(f"CH1NAME: {CH1NAME}")
             Settings, logsbutton = draw_game(text_line1, text_line2, CH1NAME)
             Settings, logsbutton = draw_game(text_line1, text_line2,CH1NAME)
         elif state == "settings":
@@ -807,15 +858,17 @@ while True:
             draw_save_confirmation(saveslot)
         elif state == "load_confirmation":
             draw_load_confirmation(saveslot)
-
         elif state == "start_options":
             draw_start_options()
         elif state == "logs":
-            draw_logs()
+            draw_logs(log,scroll_offset)
         
         now = pygame.time.get_ticks()
         if char_index < len(full_text) and now - last_char_time >= typespeed:
             char_index += 1
             text_line1, text_line2 = wrap_textbox_text(full_text[:char_index])
             last_char_time = now
+        clock = pygame.time.Clock()
+        clock.tick(60)
         pygame.display.update()
+        
