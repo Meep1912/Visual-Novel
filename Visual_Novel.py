@@ -43,6 +43,7 @@ currentBG = "Assets\Backgrounds\warehouse_outside.png"
 playlist = "ambient_room"
 CH1NAME = ""
 CH2NAME = ""
+log = ""
 save1time = "0"
 save2time = "0"
 save3time = "0"
@@ -124,6 +125,29 @@ def wrap_textbox_text(dialogue):
             line2 = (line2 + " " + word).strip()
 
     return line1, line2
+
+def format_logdata(data,log):
+    if data["isCH1speaking"] == True:
+        log = {
+        "name" : data["CH1NAME"],
+        "text" : data["dialogue"]
+        }
+    else:
+        
+    return log
+
+def wrap_logbox_text(data,log):
+    sentences = ""
+    logboxwidth = 600
+    log = ["BOB", "hello there"]
+    
+    
+
+
+
+
+
+
 
 def save(saveslot, line_index1):
     global save1time, save2time, save3time, save4time, save5time, save6time
@@ -414,6 +438,8 @@ def draw_logs():
 
     logstitle = settingsfont.render("L O G S", False, (black))
     screen.blit(logstitle, (sx(75), sy(75)))
+
+    
 
 
 

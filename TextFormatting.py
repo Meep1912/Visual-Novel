@@ -32,7 +32,7 @@ def readlines(lines,line):
     CH2 = None
     CH1NAME = None
     CH2NAME = None
-
+    isCH1speaking = None
     for i, word in enumerate(words):
         if word == "BG":
             BG = backgrounds.get(words[i+1])
@@ -43,6 +43,10 @@ def readlines(lines,line):
         elif word == "CH2":
             CH2 = characters.get(words[i + 1])
             CH2NAME = words[i+1]
+        elif words.index("CH1") > words.index("CH2"):
+            isCH1speaking = True
+        elif words.index("CH1") < words.index("CH2"):
+            isCH1speaking = False
 
 
             
@@ -50,14 +54,17 @@ def readlines(lines,line):
             text_words.append(word)
     return {
 
-        "dialogue": " ".join(text_words),
+        "isCH1speaking" : isCH1speaking,
+        "dialogue" : " ".join(text_words),
         "CH1": CH1,
         "CH2": CH2,
         "CH1NAME": CH1NAME,
         "CH2NAME": CH2NAME,
-        "BG":  BG,
+        "BG": BG,
         "BGspeed": BGspeed
     }
 
-def addtolog(data):
-    pass
+    
+
+
+        
