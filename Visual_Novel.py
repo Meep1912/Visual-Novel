@@ -1,4 +1,4 @@
-import sys, pygame, random
+import sys, pygame
 from Sound import *
 from TextFormatting import *
 from DrawFunctions import *
@@ -115,7 +115,6 @@ def load(saveslot):
                 return saveselected
             except ValueError:
                 savestate = "No Save Detected"
-                return None
 
 def wrap_textbox_text(dialogue):
     words = dialogue.split()
@@ -471,9 +470,7 @@ def draw_characters():
 
 def draw_logs(log,scroll_offset):
     draw_image(currentBG)
-    draw_characters()
     count = 0
-    count2 = 0
 
     for entry in log:
         wrapped_lines = wrap_logbox_text(entry,isCH1speaking)
@@ -482,11 +479,11 @@ def draw_logs(log,scroll_offset):
             count += 1
             draw_textline(line, count,scroll_offset)
 
-    largebox = draw_rect_alpha((96, 96, 96, 200), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+(count2*30)))
+    largebox = draw_rect_alpha((96, 96, 96, 100), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+(count*30)))
     # need to update the size of large box while rendering text ontop, the problem is that i need to render 
     # the text first in order to get the size
 
-    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
+    exitbutton = draw_rect_alpha((255, 0, 0, 50), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
     logstitle = settingsfont.render("L O G S", False, (black))
     screen.blit(logstitle, (sx(75), sy(75) + scroll_offset))
 
