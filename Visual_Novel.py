@@ -2,6 +2,7 @@ import sys, pygame
 from Sound import *
 from TextFormatting import *
 from DrawFunctions import *
+from datetime import datetime
 
 pygame.init()
 pygame.mixer.init()
@@ -54,7 +55,6 @@ save4time = "0"
 save5time = "0"
 save6time = "0"
 scroll_offset = 0
-from datetime import datetime
 log = []
 
 backgrounds = {
@@ -69,13 +69,19 @@ characters = {
     "3": "Assets/referencepose\png256x288/body13.png",
     "bob": "Assets\Bob.png"
 }
-# --- Scale helpers ---
+# --- Scaling ---
 global BW, BH
 BW, BH = 1280, 720
 def sx(v): 
     return int(v * screen.get_width() / BW)
 def sy(v): 
     return int(v * screen.get_height() / BH)
+
+# --- Screen ---
+screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+#screen = pygame.display.set_mode(size, pygame.RESIZABLE | pygame.NOFRAME)
+
+
 # --- Font ---
 font = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", 30)
 settingsfont = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", 30)
@@ -87,11 +93,8 @@ def reload_fonts():
     font = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", sy(30))
     settingsfont = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", sy(30))
     starttitlefont = pygame.font.Font("Assets/static/NotoSans-Regular.ttf", sy(40))
-
-# --- Screen ---
-screen = pygame.display.set_mode(size, pygame.RESIZABLE)
-#screen = pygame.display.set_mode(size, pygame.RESIZABLE | pygame.NOFRAME)
 reload_fonts()
+
 # --- Functions ---
 
 def wrap_textbox_text(dialogue):
@@ -482,9 +485,12 @@ def fade(NextBG, currentBG, speed):
             TransparencySurface.blit(tempchar1,(sx(80), sy(300)))
             # make character2 transparent
             TransparencySurface.blit(tempchar2,(sx(80), sy(300)))
+
         screen.blit(TransparencySurface,(0,0))
         pygame.display.update()
+    
     for i in range(0,255,5):
+    
         Transparency = i
         pygame.time.delay(speed)
         pygame.draw.rect(screen, "black", (sx(0),sy(0),sx(1280),sy(720)))
@@ -503,22 +509,26 @@ def fade(NextBG, currentBG, speed):
             TransparencySurface.blit(tempchar1,(sx(80), sy(300)))
             # make character2 transparent
             TransparencySurface.blit(tempchar1,(sx(80), sy(300)))
+
         screen.blit(TransparencySurface,(0,0))
         pygame.display.update()
 
 
 class Slider:
+
     def __init__(self, x, y, w, name):
         self.track = pygame.Rect(x, y, w, 6)
         self.handle = pygame.Rect(x, y - 6, 10, 18)
         self.name = name
         self.value = 0
         self.dragging = False
+
     def draw(self, screen, font):
         pygame.draw.rect(screen, (60, 60, 60), self.track)
         pygame.draw.rect(screen, (200, 200, 200), self.handle)
         label = font.render(self.name, False, (150, 150, 150))
         screen.blit(label, (self.track.x, self.track.y - 30))
+
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.handle.collidepoint(event.pos):
@@ -531,12 +541,12 @@ class Slider:
                 x = max(self.track.left, min(x, self.track.right))
                 self.handle.centerx = x
                 self.value = (x - self.track.left) / self.track.width
+
     def get(self, min_val, max_val):
         return int((self.value) * (max_val - min_val)) + min_val
 
 # --- Setup ---
 lines = readfile("Assets\dialogue.txt")
-
 data = readlines(lines,line)
 new_log,isCH1speaking = format_logdata(data)
 log.append(new_log)
