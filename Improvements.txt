@@ -79,4 +79,6 @@ for i in words:
         line1 += i + " "
         count1 += len(i)
 
-Yeah anyway the main thing im going to do is make the structure better
+Yeah anyway the main thing im going to do is make the structure bette
+
+I want to make a SAV file which saves settings pressets then loads it

@@ -1,3 +1,5 @@
+global current_playlist, log, character1, character2, CH1NAME, CH2NAME
+
 import sys, pygame
 from Sound import *
 from TextFormatting import *
@@ -9,7 +11,6 @@ pygame.mixer.init()
 
 # --- Settings ---
 
-global current_playlist, log, character1, character2, CH1NAME, CH2NAME, white
 
 size = width, height = 960, 540
 black = 0, 0, 0
@@ -23,8 +24,6 @@ pygame.display.set_icon(icon)
 # --- State ---
 
 
-textboxtrancparency = 200
-buttonstrancparency = 200
 state = "start"
 line_index = 0
 line = 0
@@ -41,59 +40,13 @@ loadstate = "Load"
 save_timer = 0
 load_timer = 0
 last_char_time = 0
-character1 = "Assets/Empty.png"
-character2 = "Assets/Empty.png"
-currentBG = "Assets\Backgrounds\warehouse_outside.png" 
 playlist = "ambient_room"
 CH1NAME = ""
 CH2NAME = ""
 log = ""
-save1time = "0"
-save2time = "0"
-save3time = "0"
-save4time = "0"
-save5time = "0"
-save6time = "0"
 scroll_offset = 0
 log = []
 
-backgrounds = {
-    "school1": "Assets\Backgrounds\warehouse_outside.png",
-    "school2": "Assets\Backgrounds\single bedroom.png",
-    "house1": "",
-    "house2": "",
-}
-characters = {
-    "name": "Assets/referencepose\png256x288/body11.png",
-    "2": "Assets/referencepose\png256x288/body12.png",
-    "3": "Assets/referencepose\png256x288/body13.png",
-    "bob": "Assets\Bob.png"
-}
-# --- Scaling ---
-global BW, BH
-BW, BH = 1280, 720
-def sx(v): 
-    return int(v * screen.get_width() / BW)
-def sy(v): 
-    return int(v * screen.get_height() / BH)
-
-# --- Screen ---
-screen = pygame.display.set_mode(size, pygame.RESIZABLE)
-#screen = pygame.display.set_mode(size, pygame.RESIZABLE | pygame.NOFRAME)
-
-
-# --- Font ---
-font = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", 30)
-settingsfont = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", 30)
-starttitlefont = pygame.font.Font("Assets/static/NotoSans-Regular.ttf", 40)
-
-
-def reload_fonts():
-    global font, settingsfont, starttitlefont
-    font = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", sy(30))
-    settingsfont = pygame.font.Font("Assets/Cause/static/Cause-Regular.ttf", sy(30))
-    starttitlefont = pygame.font.Font("Assets/static/NotoSans-Regular.ttf", sy(40))
-reload_fonts()
 
 # --- Functions ---
 
@@ -126,6 +79,21 @@ def wrap_logbox_text(log, isCH1speaking):
             current_line = word + " "
     lines.append(current_line)
     return lines
+
+
+def draw_logs(log,scroll_offset):
+    draw_image(currentBG)
+    count = 0
+    for entry in log:
+        wrapped_lines = wrap_logbox_text(entry,isCH1speaking)
+    
+        for line in wrapped_lines:
+            count += 1
+            draw_textline(line, count,scroll_offset)
+    largebox = draw_rect_alpha((96, 96, 96, 100), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+(count*30)))
+    exitbutton = draw_rect_alpha((255, 0, 0, 50), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
+    logstitle = settingsfont.render("L O G S", False, (black))
+    screen.blit(logstitle, (sx(75), sy(75) + scroll_offset))
 
 def format_logdata(data):
     isCH1speaking = data["isCH1speaking"]
@@ -184,7 +152,6 @@ def save(saveslot, line_index1):
     file.writelines(lines)
     screen.fill((black))
     draw_image(currentBG)
-    draw_characters()
     pygame.image.save(screen, f"Assets/savescreens/{saveslot}.png")
     file.close()
 
@@ -207,247 +174,6 @@ def refreshsaves():
         elif line.strip() == "save6":
             save6time = lines[i+2].strip()
 
-# --- Draw functions ---
-
-def Buttonify(Picture, coords, clicked):
-    if clicked == False:
-        image = pygame.image.load(Picture)
-        imagerect = image.get_rect()
-        imagerect.topright = coords
-        screen.blit(image, imagerect)
-        return (image, imagerect)
-
-def draw_rect_alpha(color, rect):
-    shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
-    pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
-    screen.blit(shape_surf, rect)
-
-def draw_image(imagefilename):
-    image = pygame.image.load(imagefilename)
-    image = pygame.transform.scale(image, screen.get_size())
-    screen.blit(image, (0, 0))
-
-def draw_background_start(imagefilename):
-    image = pygame.image.load(imagefilename)
-    image = pygame.transform.scale(image, screen.get_size())
-    screen.blit(image, (0, 0))
-
-def draw_background(imagefilename):
-    global currentBG
-    currentBG = imagefilename
-    image = pygame.image.load(imagefilename)
-    image = pygame.transform.scale(image, screen.get_size())
-    screen.blit(image, (0, 0))
-
-def draw_start():
-    draw_image("Assets\Backgrounds\sky.png")
-    title_text = starttitlefont.render("B R I G H T     L I G H T",False,(black))
-    screen.blit(title_text, (sx(400),sx(100)))
-    startoptionsbutton = draw_rect_alpha((96, 96, 96, 100), (sx(500), sy(300), sx(200), sy(40)))
-    startoptionstext = font.render("O P T I O N S", False, (black))
-    screen.blit(startoptionstext, (sx(500), sy(300)))
-    startquitbutton = draw_rect_alpha((96, 96, 96, 100), (sx(500), sy(350), sx(200), sy(40)))
-    startquitbuttontext = font.render("Q U I T", False, (black))
-    screen.blit(startquitbuttontext, (sx(500), sy(350)))
-    return Buttonify("Assets/Playbutton.png", (sx(650), sy(200)), False)
-
-def draw_start_options():
-    draw_background_start("Assets\Backgrounds\sky.png")
-    draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(540), sy(100), sx(200), sy(350)))
-    draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(720), sy(100), sx(20), sy(10)))
-
-def draw_game(text_line1, text_line2,CH1NAME):
-    draw_image(currentBG)
-    draw_characters()
-    textbox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(550), sx(1000), sy(150)))
-    logsbutton = Buttonify("Assets\open-book.png", (sx(900), sy(550)), False)
-    Settings = Buttonify("Assets/cog.png", (sx(980), sy(550)), False)
-
-    text_layer1 = font.render(text_line1, False, (0, 0, 0))
-    text_layer2 = font.render(text_line2, False, (0, 0, 0))
-    text_layer3 = font.render(keyboardinput, False, (10, 10, 10))
-
-    CH1NAMEbox = draw_rect_alpha((96, 96, 96, textboxtrancparency), (sx(100), sy(500), sx(150), sy(50)))
-    CH1NAME_text = font.render(CH1NAME, False, (black))
-    screen.blit(CH1NAME_text, (sx(100), sy(500)))
-
-    screen.blit(text_layer1, (sx(100), sy(610)))
-    screen.blit(text_layer2, (sx(100), sy(644)))
-    screen.blit(text_layer3, (sx(10), sy(10)))
-    return Settings, logsbutton
-
-def draw_settings():
-    draw_image(currentBG)
-    draw_characters()
-    draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(540), sy(100), sx(200), sy(350)))
-    draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(720), sy(100), sx(20), sy(10)))
-    title_text = settingsfont.render("Settings", False, (150, 150, 150))
-    typespeed_slider.track = pygame.Rect(sx(560), sy(200), sx(160), sy(6))
-    typespeed_slider.handle.centerx = int(typespeed_slider.track.left + typespeed_slider.value * typespeed_slider.track.width)
-    typespeed_slider.handle.y = sy(200) - sy(6)
-    volume_slider.track = pygame.Rect(sx(560), sy(250), sx(160), sy(6))
-    volume_slider.handle.centerx = int(volume_slider.track.left + volume_slider.value * volume_slider.track.width)
-    volume_slider.handle.y = sy(250) - sy(6)
-    typespeed_slider.draw(screen, settingsfont)
-    volume_slider.draw(screen, settingsfont)
-    draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(560), sy(270), sx(160), sy(40))) # load/save options button
-    draw_rect_alpha((96, 96, 0, buttonstrancparency), (sx(560), sy(315), sx(160), sy(40))) # main menu button
-    draw_rect_alpha((96, 0, 96, buttonstrancparency), (sx(560), sy(360), sx(160), sy(40))) # quit button
-    saveslashloadbuttontext = settingsfont.render("save/load", False, (150, 150, 150))
-    buttontext = settingsfont.render("Main", False, (150, 150, 150))
-    quitbuttontext = settingsfont.render("Quit", False, (150, 150, 150))
-    screen.blit(title_text, (sx(550), sy(100)))
-    screen.blit(saveslashloadbuttontext, (sx(560), sy(275)))
-    screen.blit(buttontext, (sx(560), sy(320)))
-    screen.blit(quitbuttontext, (sx(560), sy(370)))
-
-def draw_saveslashloadmenu():
-    draw_characters()
-    draw_background(currentBG)
-    largebox = draw_rect_alpha((96, 96, 96, 150), (sx(50), sy(50), sx(1175), sy(600)))
-    # to fit 6 boxes in a 1175 by 600 box so id do 2 layers the height of boxes would be 200
-    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205), sy(50), sx(20), sy(10)))
-    box1 = draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(100), sy(100), sx(325), sy(200)))
-    box2 = draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(475), sy(100), sx(325), sy(200)))
-    box3 = draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(850), sy(100), sx(325), sy(200)))
-    box4 = draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(100), sy(350), sx(325), sy(200)))
-    box5 = draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(475), sy(350), sx(325), sy(200)))
-    box6 = draw_rect_alpha((96, 96, 96, buttonstrancparency), (sx(850), sy(350), sx(325), sy(200)))
-    box1label = settingsfont.render("Save 1", False, (black))
-    box2label = settingsfont.render("Save 2", False, (black))
-    box3label = settingsfont.render("Save 3", False, (black))
-    box4label = settingsfont.render("Save 4", False, (black))
-    box5label = settingsfont.render("Save 5", False, (black))
-    box6label = settingsfont.render("Save 6", False, (black))
-    box1time = settingsfont.render(save1time, False, (black))
-    box2time = settingsfont.render(save2time, False, (black))
-    box3time = settingsfont.render(save3time, False, (black))
-    box4time = settingsfont.render(save4time, False, (black))
-    box5time = settingsfont.render(save5time, False, (black))
-    box6time = settingsfont.render(save6time, False, (black))
-    try:
-        save1image= pygame.image.load(f"Assets/savescreens/save1.png")
-        save1image = pygame.transform.scale(save1image, (sx(325), sy(200)))
-        screen.blit(save1image, (sx(100), sy(100)))
-    except:
-        pass
-    try:
-        save2image= pygame.image.load(f"Assets/savescreens/save2.png")
-        save2image = pygame.transform.scale(save2image, (sx(325), sy(200)))
-        screen.blit(save2image, (sx(475), sy(100)))
-    except:
-        pass 
-    try:
-        save3image= pygame.image.load(f"Assets/savescreens/save3.png")
-        save3image = pygame.transform.scale(save3image, (sx(325), sy(200)))
-        screen.blit(save3image, (sx(850), sy(100)))
-    except:
-        pass
-    try:
-        save4image= pygame.image.load(f"Assets/savescreens/save4.png")
-        save4image = pygame.transform.scale(save4image, (sx(325), sy(200)))
-        screen.blit(save4image, (sx(100), sy(350)))
-    except:
-        pass 
-    try:
-        save5image= pygame.image.load(f"Assets/savescreens/save5.png")
-        save5image = pygame.transform.scale(save5image, (sx(325), sy(200)))
-        screen.blit(save5image, (sx(475), sy(350)))
-    except:
-        pass
-    try:
-        save6image= pygame.image.load(f"Assets/savescreens/save4.png")
-        save6image = pygame.transform.scale(save6image, (sx(325), sy(200)))
-        screen.blit(save6image, (sx(850), sy(350)))
-    except:
-        pass 
-    screen.blit(box1label, (sx(100), sy(100)))
-    screen.blit(box2label, (sx(475), sy(100)))
-    screen.blit(box3label, (sx(850), sy(100)))
-    screen.blit(box4label, (sx(100), sy(350)))
-    screen.blit(box5label, (sx(475), sy(350)))
-    screen.blit(box6label, (sx(850), sy(350)))
-    screen.blit(box1time, (sx(100), sy(250)))
-    screen.blit(box2time, (sx(475), sy(250)))
-    screen.blit(box3time, (sx(850), sy(250)))
-    screen.blit(box4time, (sx(100), sy(500)))
-    screen.blit(box5time, (sx(475), sy(500)))
-    screen.blit(box6time, (sx(850), sy(500)))
-
-def draw_save_or_load(saveslot):
-    draw_background(currentBG)
-    draw_characters()
-    draw_rect_alpha((75,75,75, 150), (sx(480), sy(250), sx(345), sy(100)))
-    text = settingsfont.render(saveslot, False,(black))
-    screen.blit(text, (sx(615),sy(250)))
-    savetext = settingsfont.render("S A V E", False,(black))
-    screen.blit(savetext, (sx(500),sy(285)))
-    loadtext = settingsfont.render("L O A D", False,(black))
-    screen.blit(loadtext, (sx(675),sy(285)))
-    save = draw_rect_alpha((255,0,0, 100), (sx(490), sy(285), sx(150), sy(40)))
-    load = draw_rect_alpha((0,0,255, 100), (sx(665), sy(285), sx(150), sy(40)))
-    quitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(805), sy(250), sx(20), sy(10)))
-
-def draw_save_confirmation(saveslot):
-    draw_background(currentBG)
-    draw_characters()
-    draw_rect_alpha((75,75,75, 150), (sx(480), sy(250), sx(345), sy(100)))
-    text = settingsfont.render(f"Save progress in {saveslot}?", False,(black))
-    screen.blit(text, (sx(480),sy(250)))
-    suretext = settingsfont.render("IM SURE", False,(black))
-    screen.blit(suretext, (sx(500),sy(285)))
-    notsuretext = settingsfont.render("Im not sure", False,(black))
-    screen.blit(notsuretext, (sx(665),sy(285)))
-    sure = draw_rect_alpha((255,0,0, 100), (sx(490), sy(285), sx(150), sy(40)))
-    notsure = draw_rect_alpha((0,0,255, 100), (sx(665), sy(285), sx(155), sy(40)))
-    quitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(805), sy(250), sx(20), sy(10)))                     
-    
-def draw_load_confirmation(saveslot):
-    draw_background(currentBG)
-    draw_characters()
-    draw_rect_alpha((75,75,75, 150), (sx(480), sy(250), sx(345), sy(100)))
-    text = settingsfont.render(f"Load {saveslot}?", False,(black))
-    screen.blit(text, (sx(480),sy(250)))
-    suretext = settingsfont.render("IM SURE", False,(black))
-    screen.blit(suretext, (sx(500),sy(285)))
-    notsuretext = settingsfont.render("Im not sure", False,(black))
-    screen.blit(notsuretext, (sx(665),sy(285)))
-    sure = draw_rect_alpha((255,0,0, 100), (sx(490), sy(285), sx(150), sy(40)))
-    notsure = draw_rect_alpha((0,0,255, 100), (sx(665), sy(285), sx(155), sy(40)))
-    quitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(805), sy(250), sx(20), sy(10)))       
-
-def draw_characters():
-    x, y = sx(80), sy(300)
-    if character1 == "Assets/Empty.png" and character2 == "Assets/Empty.png":
-        pass
-    elif character1 != "Assets/Empty.png" and character2 == "Assets/Empty.png":
-        character1_img = pygame.image.load(character1)
-        screen.blit(character1_img, (x, y))
-    elif character1 != "Assets/Empty.png" and character2 != "Assets/Empty.png":
-        character1_img = pygame.image.load(character1)
-        screen.blit(character1_img, (x, y))
-        character2_img = pygame.image.load(character2)
-        screen.blit(character2_img, (x + sx(764), y))
-
-
-def draw_logs(log,scroll_offset):
-    draw_image(currentBG)
-    count = 0
-    for entry in log:
-        wrapped_lines = wrap_logbox_text(entry,isCH1speaking)
-    
-        for line in wrapped_lines:
-            count += 1
-            draw_textline(line, count,scroll_offset)
-    largebox = draw_rect_alpha((96, 96, 96, 100), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+(count*30)))
-    exitbutton = draw_rect_alpha((255, 0, 0, 50), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
-    logstitle = settingsfont.render("L O G S", False, (black))
-    screen.blit(logstitle, (sx(75), sy(75) + scroll_offset))
-
-def draw_textline(line,count,scroll_offset):
-    text = line
-    line_ = font.render(text, False, (white))
-    screen.blit(line_, (sx(100),sy(100) + count * sy(35) + scroll_offset))
 
 def fade(NextBG, currentBG, speed):
     if speed == "fast":
@@ -514,36 +240,6 @@ def fade(NextBG, currentBG, speed):
         pygame.display.update()
 
 
-class Slider:
-
-    def __init__(self, x, y, w, name):
-        self.track = pygame.Rect(x, y, w, 6)
-        self.handle = pygame.Rect(x, y - 6, 10, 18)
-        self.name = name
-        self.value = 0
-        self.dragging = False
-
-    def draw(self, screen, font):
-        pygame.draw.rect(screen, (60, 60, 60), self.track)
-        pygame.draw.rect(screen, (200, 200, 200), self.handle)
-        label = font.render(self.name, False, (150, 150, 150))
-        screen.blit(label, (self.track.x, self.track.y - 30))
-
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if self.handle.collidepoint(event.pos):
-                self.dragging = True
-        elif event.type == pygame.MOUSEBUTTONUP:
-            self.dragging = False
-        elif event.type == pygame.MOUSEMOTION:
-            if self.dragging:
-                x = event.pos[0]
-                x = max(self.track.left, min(x, self.track.right))
-                self.handle.centerx = x
-                self.value = (x - self.track.left) / self.track.width
-
-    def get(self, min_val, max_val):
-        return int((self.value) * (max_val - min_val)) + min_val
 
 # --- Setup ---
 lines = readfile("Assets\dialogue.txt")
@@ -553,10 +249,6 @@ log.append(new_log)
 Startbutton = None
 fastforward = None
 Settings = None
-typespeed_slider = Slider(sx(560), sy(200), sx(160), "Text Speed")
-volume_slider = Slider(sx(560), sy(250), sx(160), "Volume")
-volume_slider.value = 0.3                     
-volume_slider.handle.centerx = int(volume_slider.track.left + 0.3 * volume_slider.track.width)
 savebutton = None
 NEXT_TRACK = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent(NEXT_TRACK)
@@ -631,12 +323,12 @@ while True:
 
                     elif textbox_rect.collidepoint(mouse):
 
-                        # 1) Skip text if still typing
+                        #skip text if still typing
                         if char_index < len(full_text):
                             char_index = len(full_text)
                             text_line1, text_line2 = wrap_textbox_text(full_text)
 
-                        # 2) Otherwise advance dialogue
+                        #Otherwise advance dialogue
                         elif line_index < len(lines) - 1:
                             line_index += 1
                             data = readlines(lines,line_index)
@@ -646,12 +338,9 @@ while True:
                             full_text = data["dialogue"]
                             char_index = 0
 
-                            # APPLY BG HERE (ONLY HERE)
                             if data["BG"]:
                                 fade(data["BG"], currentBG, data["BGspeed"])
                                 currentBG = data["BG"]
-
-                            # APPLY CHARACTERS HERE (if needed)
 
                             if data["CH1"] is not None:
                                 character1 = data["CH1"]
@@ -664,7 +353,8 @@ while True:
 
                             if data["CH2NAME"] is not None:
                                 CH2NAME = data["CH2NAME"]
-                # SPACE = same behaviour as clicking forward
+
+                # SPACE = same as clicking
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and char_index >= len(full_text):
                     if line_index < len(lines) - 1:
                         line_index += 1
@@ -689,7 +379,7 @@ while True:
 
             elif state == "settings":
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    mouse = pygame.mouse.get_pos()
+                    mouse = pygame .mouse.get_pos()
                     if closesettings_rect.collidepoint(mouse):
                         state = "game"
                     elif Settings and Settings[1].collidepoint(mouse):
@@ -803,21 +493,33 @@ while True:
         if state == "start":
             Startbutton = draw_start()
         elif state == "game":
-            Settings, logsbutton = draw_game(text_line1, text_line2, CH1NAME)
-            Settings, logsbutton = draw_game(text_line1, text_line2,CH1NAME)
+            draw_image(currentBG)
+            draw_characters(character1,character2)
+            Settings, logsbutton = draw_game(text_line1, text_line2, CH1NAME,CH2NAME)
         elif state == "settings":
+            draw_image(currentBG)
+            draw_characters(character1,character2)
             draw_settings()
         elif state == "save/load menu":
+            draw_image(currentBG)
+            draw_characters(character1,character2)
             draw_saveslashloadmenu()
         elif state == "save_or_load":
+            draw_image(currentBG)
+            draw_characters(character1,character2)
             draw_save_or_load(saveslot)
         elif state == "save_confirmation":
+            draw_image(currentBG)
+            draw_characters(character1,character2)
             draw_save_confirmation(saveslot)
         elif state == "load_confirmation":
+            draw_image(currentBG)
+            draw_characters(character1,character2)
             draw_load_confirmation(saveslot)
         elif state == "start_options":
             draw_start_options()
         elif state == "logs":
+            draw_image(currentBG)
             draw_logs(log,scroll_offset)
         
         now = pygame.time.get_ticks()
