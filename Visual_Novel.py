@@ -7,8 +7,12 @@ pygame.init()
 pygame.mixer.init()
 
 # --- Settings ---
+
+global current_playlist, log, character1, character2, CH1NAME, CH2NAME, white
+
 size = width, height = 960, 540
 black = 0, 0, 0
+white = 255,255,255
 
 pygame.display.set_caption("Bright Light")  # window name
 icon = pygame.image.load("Assets/Icon.png")
@@ -16,7 +20,6 @@ pygame.display.set_icon(icon)
 
 
 # --- State ---
-global current_playlist, log, character1, character2, CH1NAME, CH2NAME
 
 
 textboxtrancparency = 200
@@ -470,26 +473,28 @@ def draw_logs(log,scroll_offset):
     draw_image(currentBG)
     draw_characters()
     count = 0
-    total_height = 1
-    largebox = draw_rect_alpha((96, 96, 96, 100), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+total_height))
-    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
+    count2 = 0
 
-    logstitle = settingsfont.render("L O G S", False, (black))
-    screen.blit(logstitle, (sx(75), sy(75) + scroll_offset))
     for entry in log:
         wrapped_lines = wrap_logbox_text(entry,isCH1speaking)
-
+    
         for line in wrapped_lines:
             count += 1
-            renderedline = draw_textline(line, count,scroll_offset)
-            total_height =+ renderedline.font.size()[1]
+            draw_textline(line, count,scroll_offset)
+
+    largebox = draw_rect_alpha((96, 96, 96, 200), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+(count2*30)))
+    # need to update the size of large box while rendering text ontop, the problem is that i need to render 
+    # the text first in order to get the size
+
+    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
+    logstitle = settingsfont.render("L O G S", False, (black))
+    screen.blit(logstitle, (sx(75), sy(75) + scroll_offset))
 
 def draw_textline(line,count,scroll_offset):
     text = line
-    line2 = font.render(text, False, (black))
-    line_ = font.render(text, False, (black))
+    line_ = font.render(text, False, (white))
     screen.blit(line_, (sx(100),sy(100) + count * sy(35) + scroll_offset))
-    return line2
+
 
 
     
@@ -840,12 +845,14 @@ while True:
     # logs state
 
             elif state == "logs":
+                closelogsbutton_rect = pygame.Rect(sx(1205), sy(50) + scroll_offset, sx(20), sy(10))
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mouse = pygame.mouse.get_pos()
                     if closelogsbutton_rect.collidepoint(mouse):
                         state = "game"
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll_offset += event.y * 30
+
 
 
             
