@@ -467,23 +467,29 @@ def draw_characters():
 
 
 def draw_logs(log,scroll_offset):
+    draw_image(currentBG)
+    draw_characters()
     count = 0
-    largebox = draw_rect_alpha((96, 96, 96, 40), (sx(50), sy(50), sx(1175), sy(600)))
-    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205), sy(50), sx(20), sy(10)))
+    total_height = 1
+    largebox = draw_rect_alpha((96, 96, 96, 100), (sx(50), sy(50)+scroll_offset, sx(1175), sy(200)+total_height))
+    exitbutton = draw_rect_alpha((255, 0, 0, buttonstrancparency), (sx(1205) , sy(50)+scroll_offset, sx(20), sy(10)))
 
     logstitle = settingsfont.render("L O G S", False, (black))
-    screen.blit(logstitle, (sx(75), sy(75)))
+    screen.blit(logstitle, (sx(75), sy(75) + scroll_offset))
     for entry in log:
         wrapped_lines = wrap_logbox_text(entry,isCH1speaking)
 
         for line in wrapped_lines:
             count += 1
-            draw_textline(line, count,scroll_offset)
+            renderedline = draw_textline(line, count,scroll_offset)
+            total_height =+ renderedline.font.size()[1]
 
 def draw_textline(line,count,scroll_offset):
     text = line
+    line2 = font.render(text, False, (black))
     line_ = font.render(text, False, (black))
     screen.blit(line_, (sx(100),sy(100) + count * sy(35) + scroll_offset))
+    return line2
 
 
     
@@ -835,11 +841,12 @@ while True:
 
             elif state == "logs":
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        mouse = pygame.mouse.get_pos()
-                        if closelogsbutton_rect.collidepoint(mouse):
-                            state = "game"
-                        if event.type == pygame.MOUSEWHEEL:
-                            scroll_offset += event.y * 30
+                    mouse = pygame.mouse.get_pos()
+                    if closelogsbutton_rect.collidepoint(mouse):
+                        state = "game"
+                elif event.type == pygame.MOUSEWHEEL:
+                    scroll_offset += event.y * 30
+
 
             
     # --- Drawing ---
