@@ -310,7 +310,7 @@ class Slider:
                 self.value = (x - self.track.left) / self.track.width
 
     def get(self, min_val, max_val):
-        return int((self.value) * (max_val - min_val)) + min_val
+        return int((self.value +0.2) * (max_val - min_val)) + min_val
     
 typespeed_slider = Slider(sx(560), sy(200), sx(160), "Text Speed")
 volume_slider = Slider(sx(560), sy(250), sx(160), "Volume")
